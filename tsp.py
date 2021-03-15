@@ -56,3 +56,8 @@ adjacencyMatrix = [[0, 10, 15, 20], [10, 0, 35, 25], [15, 35, 0, 30], [20, 25, 3
 a = greedySymmetricTSP(adjacencyMatrix, 0)
 
 print(a)
+
+
+#heeeeeyyyyy
+#cnahges are here! 
+#sweet new changes. Very good changes
