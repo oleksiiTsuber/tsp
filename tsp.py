@@ -48,8 +48,37 @@ def greedySymmetricTSP(adjacencyMatrix, startingNode):#works only with symmetric
          
         counter += 1
         n = len(a)-1
+
     
-    return {'path': path, 'lengthes': lengthes, 'all': sum(lengthes)}
+    theLastEdge = np.where(isUsed == 1)[0]
+    path.append(theLastEdge)
+    lengthes.append(adjacencyMatrix[theLastEdge[0]][theLastEdge[1]])
+    #now we should sort by the starting node i guess. Though it shouldn't matter
+
+    path1 = path.copy()
+    lengthes1 = lengthes.copy()
+
+    sortedPath = []
+    sortedLengthes = []
+
+    def appendToSorted(sortedPath, sortedLengthes, prev, path_, lenghtes_):#fucking nested function messing up my scope
+        for i in range(len(path_)):
+            if prev in path_[i]:
+                hm = path_.pop(i)
+                if hm[0] != prev:
+                    hm[0], hm[1] = hm[1], hm[0]
+                sortedPath.append(hm)
+                sortedLengthes.append(lenghtes_.pop(i))
+                break
+
+    appendToSorted(sortedPath, sortedLengthes, startingNode, path1, lengthes1)
+    while len(path1) != 0:
+        appendToSorted(sortedPath, sortedLengthes, sortedPath[-1][1], path1, lengthes1)
+        
+    return {'path': sortedPath, 'lengthes': sortedLengthes, 'all': sum(sortedLengthes)}
+
+
+
 
 adjacencyMatrix = [[0, 10, 15, 20], [10, 0, 35, 25], [15, 35, 0, 30], [20, 25, 30, 0]]
 
