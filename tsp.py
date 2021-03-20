@@ -111,25 +111,25 @@ def greedySymmetricTSP(adjacencyMatrix, startingNode):#works only with symmetric
     lengthes.append(adjacencyMatrix[theLastEdge[0]][theLastEdge[1]])
     #now we should sort by the starting node i guess. Though it shouldn't matter
 
-    path1 = path.copy()
-    lengthes1 = lengthes.copy()
+    # path1 = path.copy()
+    # lengthes1 = lengthes.copy()
 
     sortedPath = []
     sortedLengthes = []
 
-    def appendToSorted(sortedPath, sortedLengthes, prev, path_, lenghtes_):#fucking nested function messing up my scope
+    def appendToSorted(sortedPath_, sortedLengthes_, prev, path_, lenghtes_):#fucking nested function messing up my scope
         for i in range(len(path_)):
             if prev in path_[i]:
                 hm = path_.pop(i)
                 if hm[0] != prev:
                     hm[0], hm[1] = hm[1], hm[0]
-                sortedPath.append(hm)
-                sortedLengthes.append(lenghtes_.pop(i))
+                sortedPath_.append(hm)
+                sortedLengthes_.append(lenghtes_.pop(i))
                 break
 
-    appendToSorted(sortedPath, sortedLengthes, startingNode, path1, lengthes1)
-    while len(path1) != 0:
-        appendToSorted(sortedPath, sortedLengthes, sortedPath[-1][1], path1, lengthes1)
+    appendToSorted(sortedPath, sortedLengthes, startingNode, path, lengthes)
+    while len(path) != 0:
+        appendToSorted(sortedPath, sortedLengthes, sortedPath[-1][1], path, lengthes)
         
     return {'path': sortedPath, 'lengthes': sortedLengthes, 'all': sum(sortedLengthes)}
 
@@ -147,13 +147,15 @@ a = greedySymmetricTSP(adjacencyMatrix, 0)
 print(a)
 
 
-n = 100
+n = 1_00
 adjacencyMatrix = np.absolute(np.random.normal(0, 100, n**2)).reshape(n, n)
 
 #print(adjacencyMatrix)
 
 a = greedySymmetricTSP(adjacencyMatrix, 0)
 print(a)
+
+#print(a['all'])
 
 
 #heeeeeyyyyy
