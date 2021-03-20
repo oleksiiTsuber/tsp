@@ -25,23 +25,25 @@ def greedySymmetricTSP(adjacencyMatrix, startingNode):#works only with symmetric
     n = len(a)-1
     
     def getNext(currentNode_, previousEdge_, path_): #so fucking tedious
-        #find an edge in the pass which contains the current node
-        #return the other node in that edge
         
+        pizda = 1
         boolMask_ = np.any(np.isin(path_, currentNode_), axis=1)
-        
+        pizda = 1
         toConsider_ = np.array(path_)[boolMask_]
-        prevEdge_ = toConsider_[toConsider_ != previousEdge_]
+        pizda = 1
+        hm = [not np.array_equal(previousEdge_, i) for i in toConsider_]#maybe some problems here
+        prevEdge_ = toConsider_[hm]
+        #prevEdge_ = toConsider_[toConsider_ != previousEdge_]#big problems here. SUKA
         nextNode_ = prevEdge_[prevEdge_ != currentNode_]
         #i'm so tired of this problem
-        
-        return nextNode_, prevEdge_
+        pizda = 1
+        return nextNode_[0], prevEdge_[0]
 
 
-    
+    pizda = 1
     while counter != n: 
-        
-
+        #print(n, counter)
+        pizda = 1
         thereIsCycle = False#yeah we'll stick to this one
 
 
@@ -61,7 +63,8 @@ def greedySymmetricTSP(adjacencyMatrix, startingNode):#works only with symmetric
             while True:
                 nextNode1, prevEdge1 = getNext(currentNode1, prevEdge1, path)
                 nextNode2, prevEdge2 = getNext(currentNode2, prevEdge2, path)
-                if nextNode1 == currentNode2 or nextNode2 == currentNode1 or nextNode1 == nextNode2:
+                pizda = 1
+                if nextNode1 == currentNode2 or nextNode2 == currentNode1 or nextNode1 == nextNode2:#big problems here
                     thereIsCycle = True 
                     break
                 if isUsed[nextNode1] <= 1 or isUsed[nextNode2] <= 1:
@@ -102,7 +105,7 @@ def greedySymmetricTSP(adjacencyMatrix, startingNode):#works only with symmetric
         counter += 1
         n = len(a)-1
 
-    
+    #print("SUKAAAAAAA")
     theLastEdge = np.where(isUsed == 1)[0]
     path.append(theLastEdge)
     lengthes.append(adjacencyMatrix[theLastEdge[0]][theLastEdge[1]])
@@ -135,12 +138,21 @@ def greedySymmetricTSP(adjacencyMatrix, startingNode):#works only with symmetric
 
 adjacencyMatrix = [[0, 10, 15, 20], [10, 0, 35, 25], [15, 35, 0, 30], [20, 25, 30, 0]]
 
+a = greedySymmetricTSP(adjacencyMatrix, 0)
+print(a)
+
 adjacencyMatrix = [[0, 12, 10, 19, 8], [12, 0, 3, 7, 2], [10, 3, 0, 6, 20], [19, 7, 6, 0, 4], [8, 2, 20, 4, 0]]
 
+a = greedySymmetricTSP(adjacencyMatrix, 0)
+print(a)
 
+
+n = 100
+adjacencyMatrix = np.absolute(np.random.normal(0, 100, n**2)).reshape(n, n)
+
+#print(adjacencyMatrix)
 
 a = greedySymmetricTSP(adjacencyMatrix, 0)
-
 print(a)
 
 
