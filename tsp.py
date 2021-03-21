@@ -1,4 +1,47 @@
 import numpy as np
+import math
+
+
+
+
+
+def transformPointsToDistances(toWorkWith):#a list of point coordinates
+    def dist(a, b):
+        return math.sqrt((a[0] - b[0])** 2 + (a[1] - b[1])**2)
+
+
+    n = len(toWorkWith)
+    print(n)
+    arrayToFill = []
+
+    counter = 1
+
+    for i in range(n-1):
+        temp = []
+        for j in range(counter, n):
+            temp.append(dist(toWorkWith[i], toWorkWith[j])) 
+
+        temp = [0] * (i+1) + temp
+        arrayToFill.append(temp)
+        counter += 1
+    arrayToFill.append([0] * n)    
+    return arrayToFill
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 def greedySymmetricTSP(adjacencyMatrix, startingNode):#works only with symmetric TSPs
     
@@ -136,24 +179,24 @@ def greedySymmetricTSP(adjacencyMatrix, startingNode):#works only with symmetric
 
 
 
-adjacencyMatrix = [[0, 10, 15, 20], [10, 0, 35, 25], [15, 35, 0, 30], [20, 25, 30, 0]]
+# adjacencyMatrix = [[0, 10, 15, 20], [10, 0, 35, 25], [15, 35, 0, 30], [20, 25, 30, 0]]
 
-a = greedySymmetricTSP(adjacencyMatrix, 0)
-print(a)
+# a = greedySymmetricTSP(adjacencyMatrix, 0)
+# print(a)
 
-adjacencyMatrix = [[0, 12, 10, 19, 8], [12, 0, 3, 7, 2], [10, 3, 0, 6, 20], [19, 7, 6, 0, 4], [8, 2, 20, 4, 0]]
+# adjacencyMatrix = [[0, 12, 10, 19, 8], [12, 0, 3, 7, 2], [10, 3, 0, 6, 20], [19, 7, 6, 0, 4], [8, 2, 20, 4, 0]]
 
-a = greedySymmetricTSP(adjacencyMatrix, 0)
-print(a)
+# a = greedySymmetricTSP(adjacencyMatrix, 0)
+# print(a)
 
 
-n = 1_00
-adjacencyMatrix = np.absolute(np.random.normal(0, 100, n**2)).reshape(n, n)
+# n = 1_00
+# adjacencyMatrix = np.absolute(np.random.normal(0, 100, n**2)).reshape(n, n)
 
-#print(adjacencyMatrix)
+# #print(adjacencyMatrix)
 
-a = greedySymmetricTSP(adjacencyMatrix, 0)
-print(a)
+# a = greedySymmetricTSP(adjacencyMatrix, 0)
+# print(a)
 
 #print(a['all'])
 
