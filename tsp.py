@@ -5,11 +5,12 @@ import math
 
 
 
-def transformPointsToDistances(toWorkWith):#a list of point coordinates
+def transformPointsToDistances(toWorkWith):#a list of point coordinates. The most fucking inefficient thing I've ever written
     def dist(a, b):
         return math.sqrt((a[0] - b[0])** 2 + (a[1] - b[1])**2)
 
-
+    
+    toWorkWith = np.array(toWorkWith)
     n = len(toWorkWith)
     print(n)
     arrayToFill = []
@@ -17,14 +18,18 @@ def transformPointsToDistances(toWorkWith):#a list of point coordinates
     counter = 1
 
     for i in range(n-1):
+        #print(i)
+           
         temp = []
-        for j in range(counter, n):
+        for j in range(counter, n): #change only this part? 
             temp.append(dist(toWorkWith[i], toWorkWith[j])) 
-
         temp = [0] * (i+1) + temp
+
+        
         arrayToFill.append(temp)
-        counter += 1
-    arrayToFill.append([0] * n)    
+        counter += 1 #why did I need it? 
+    arrayToFill.append(np.zeros(n))   
+    print("transformation to an adj matrix is done") 
     return arrayToFill
 
 
@@ -46,27 +51,31 @@ def transformPointsToDistances(toWorkWith):#a list of point coordinates
 def greedySymmetricTSP(adjacencyMatrix, startingNode):#works only with symmetric TSPs
     
     
-    newIndices = []#what is this variable, for god's sake? Index of every enge in the adjacencyMatrix it seems
-    for i in range(len(adjacencyMatrix)):
-        for j in range(len(adjacencyMatrix[i])):
-            newIndices += [[i,j]]
-    newIndices = np.array(newIndices)      
     
     a = np.triu(adjacencyMatrix)#upper triangle of a matrix
+    print(1)
     np.fill_diagonal(a, 0)
+    print(2)
+    hm = np.nonzero(a)
+    print(3)
+    newIndices = np.array(list(zip(hm[0], hm[1])))
+    print(4)
+
     a = a.flatten()
-    
+    a = a[np.nonzero(a)]
     hm = a.argsort()#I should study this function
     a, newIndices = a[hm], newIndices[hm]
+    print(5)
+    pizda = 1
     
-    hm = np.nonzero(a)
-    a, newIndices = a[hm], newIndices[hm]
+
+
     
     isUsed = np.zeros(len(adjacencyMatrix))
     path,lengthes = [], []
     counter = 0
     n = len(a)-1
-    
+
     def getNext(currentNode_, previousEdge_, path_): #so fucking tedious
         
         pizda = 1
@@ -85,15 +94,14 @@ def greedySymmetricTSP(adjacencyMatrix, startingNode):#works only with symmetric
 
     pizda = 1
     while counter != n: 
-        #print(n, counter)
+        #print('n, counter: ', n, counter)
         pizda = 1
         thereIsCycle = False#yeah we'll stick to this one
 
 
-        #pathUnderConsideration = newIndices[counter]#just to watch yet
+        
         connectivityBeforeChanges = [isUsed[newIndices[counter][0]], isUsed[newIndices[counter][1]]]#just added it. We'll see
-        # isUsed[newIndices[counter][0]] += 1
-        # isUsed[newIndices[counter][1]] += 1
+        
         
         path.append(newIndices[counter])
         
@@ -109,6 +117,7 @@ def greedySymmetricTSP(adjacencyMatrix, startingNode):#works only with symmetric
                 pizda = 1
                 if nextNode1 == currentNode2 or nextNode2 == currentNode1 or nextNode1 == nextNode2:#big problems here
                     thereIsCycle = True 
+                    print("CYCLE! CYCLE DETECTED!")
                     break
                 if isUsed[nextNode1] <= 1 or isUsed[nextNode2] <= 1:
                     thereIsCycle = False #a bit redundunt
@@ -119,11 +128,9 @@ def greedySymmetricTSP(adjacencyMatrix, startingNode):#works only with symmetric
 
 
         
-
+        boolMask = []
 
         if thereIsCycle:
-            # isUsed[newIndices[counter][0]] -= 1
-            # isUsed[newIndices[counter][1]] -= 1
             path.pop()
         if not thereIsCycle: 
             #path.append(newIndices[counter]) #may be problems
@@ -131,19 +138,23 @@ def greedySymmetricTSP(adjacencyMatrix, startingNode):#works only with symmetric
             isUsed[newIndices[counter][0]] += 1
             isUsed[newIndices[counter][1]] += 1
             
-            if isUsed[newIndices[counter][0]] >= 2:
+            if isUsed[newIndices[counter][0]] >= 2:#this thing uses so much memory somehow. Which one though? 
+                pass
                 boolMask = np.any(np.isin(newIndices, newIndices[counter][0]), axis=1)
                 
                 boolMask[:counter+1] = False
             
                 boolMask = np.invert(boolMask)
                 a, newIndices = a[boolMask], newIndices[boolMask]
+                #del boolMask #?????
                 
             if isUsed[newIndices[counter][1]] >= 2:
+                pass
                 boolMask = np.any(np.isin(newIndices, newIndices[counter][1]), axis=1)
                 boolMask[:counter+1] = False
                 boolMask = np.invert(boolMask)
                 a, newIndices = a[boolMask], newIndices[boolMask]
+                #del boolMask #?????
          
         counter += 1
         n = len(a)-1
@@ -152,10 +163,9 @@ def greedySymmetricTSP(adjacencyMatrix, startingNode):#works only with symmetric
     theLastEdge = np.where(isUsed == 1)[0]
     path.append(theLastEdge)
     lengthes.append(adjacencyMatrix[theLastEdge[0]][theLastEdge[1]])
-    #now we should sort by the starting node i guess. Though it shouldn't matter
+    
 
-    # path1 = path.copy()
-    # lengthes1 = lengthes.copy()
+    print("Initial part is done. Now let's sort the path")
 
     sortedPath = []
     sortedLengthes = []
@@ -179,26 +189,21 @@ def greedySymmetricTSP(adjacencyMatrix, startingNode):#works only with symmetric
 
 
 
-# adjacencyMatrix = [[0, 10, 15, 20], [10, 0, 35, 25], [15, 35, 0, 30], [20, 25, 30, 0]]
+adjacencyMatrix = [[0, 10, 15, 20], [10, 0, 35, 25], [15, 35, 0, 30], [20, 25, 30, 0]]
 
-# a = greedySymmetricTSP(adjacencyMatrix, 0)
-# print(a)
+a = greedySymmetricTSP(adjacencyMatrix, 0)
+print(a)
 
-# adjacencyMatrix = [[0, 12, 10, 19, 8], [12, 0, 3, 7, 2], [10, 3, 0, 6, 20], [19, 7, 6, 0, 4], [8, 2, 20, 4, 0]]
+adjacencyMatrix = [[0, 12, 10, 19, 8], [12, 0, 3, 7, 2], [10, 3, 0, 6, 20], [19, 7, 6, 0, 4], [8, 2, 20, 4, 0]]
 
-# a = greedySymmetricTSP(adjacencyMatrix, 0)
-# print(a)
+a = greedySymmetricTSP(adjacencyMatrix, 0)
+print(a)
 
 
-# n = 1_00
-# adjacencyMatrix = np.absolute(np.random.normal(0, 100, n**2)).reshape(n, n)
-
-# #print(adjacencyMatrix)
-
-# a = greedySymmetricTSP(adjacencyMatrix, 0)
-# print(a)
-
-#print(a['all'])
+n = 1_000
+adjacencyMatrix = np.absolute(np.random.normal(0, 100, n**2)).reshape(n, n)
+a = greedySymmetricTSP(adjacencyMatrix, 0)
+print(a['all'])
 
 
 #heeeeeyyyyy
