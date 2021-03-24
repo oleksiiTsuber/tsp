@@ -1,40 +1,30 @@
 import numpy as np
 import math
 import pandas as pd
-import sys
-import gc
-import tracemalloc
-from pympler import muppy, summary
+import os
 
 
-def transformPointsToDistances(toWorkWith):#a list of point coordinates. The most fucking inefficient thing I've ever written
+def transformPointsToDistances(toWorkWith, name, dir):#a list of point coordinates. The most fucking inefficient thing I've ever written
     def dist(a, b):
         return math.sqrt((a[0] - b[0])** 2 + (a[1] - b[1])**2)
-
     
     toWorkWith = np.array(toWorkWith)
     n = len(toWorkWith)
-    #print(n)
-    arrayToFill = []
+    arrayToFill = np.zeros([n,n])
 
-    counter = 1
-    with open('C:\\users\\oleks\\OneDrive\\Рабочий Стол\\tsp\\' + 'test' + '.adj', 'w') as f:
-        for i in range(n-1):
-            #print(i)
-            
-            temp = []
-            for j in range(counter, n): #use a list comprehention?
-                temp.append(str(dist(toWorkWith[i], toWorkWith[j])))
-            temp = ['0'] * (i+1) + temp
-
-            f.write(" ".join(temp))
-            f.write('\n')
-            #arrayToFill.append(temp)
-            counter += 1 #why did I need it? 
-        #arrayToFill.append(np.zeros(n))   
-        f.write(" ".join(['0'] * n))
-    #print("transformation to an adj matrix is done") 
-    #return arrayToFill
+    for i in range(n-1):
+        #print(i) 
+        x1 = np.repeat(toWorkWith[i][0], n-(i+1))
+        y1 = np.repeat(toWorkWith[i][1], n-(i+1))
+        x2 = toWorkWith[i+1:n].T[0]
+        y2 = toWorkWith[i+1:n].T[1]
+        pizda = 1
+        suka = np.sqrt( (x1 - x2)**2 + (y1 - y2)**2   )
+        pizda = 1
+        arrayToFill[i][i+1:n] = np.sqrt( (x1 - x2)**2 + (y1 - y2)**2   )
+ 
+    #np.save('C:\\users\\oleks\\OneDrive\\Рабочий Стол\\tsp\\' + 'test' + '.npy', arrayToFill)
+    np.save(dir + name + '.npy', arrayToFill)
     return "Adjacency matrix is in the file right now"
 
 
@@ -56,78 +46,22 @@ def transformPointsToDistances(toWorkWith):#a list of point coordinates. The mos
 def greedySymmetricTSP(adjacencyMatrixFile, startingNode):#works only with symmetric TSPs
     
     if type(adjacencyMatrixFile) != str:
-        #write it into the file
-        with open('C:\\users\\oleks\\OneDrive\\Рабочий Стол\\tsp\\' + 'temp' + '.adj', 'w') as f:
-            for i in adjacencyMatrixFile:
-                f.write(" ".join([str(j) for j in i]) + "\n")
-        adjacencyMatrixFile = 'C:\\users\\oleks\\OneDrive\\Рабочий Стол\\tsp\\' + 'temp' + '.adj'
+        name = os.getcwd()
+        np.save(name + 'temp' + '.npy', adjacencyMatrixFile)
+        adjacencyMatrixFile = name + 'temp' + '.npy'
 
-
-    a = np.array(pd.read_csv(adjacencyMatrixFile, delimiter = r"\s+"))
+    a = np.load(adjacencyMatrixFile)
     matSize = len(a[0])
-    print("matSize: ", matSize)
+    #print("a: ", a)
     a = np.triu(a)
     np.fill_diagonal(a, 0)
-    print(1)
     newIndices = np.nonzero(a)
-    print(2)
     a = a[newIndices]
-    print(3)
     newIndices = np.array([newIndices[0], newIndices[1]]).T
-
     hm = a.argsort()#I should study this function
     a, newIndices = a[hm], newIndices[hm]
-    #aa = int(input('aa: '))
-    # a, newIndices = [], []
-    # matSize = 0
-
-    # with open(adjacencyMatrixFile, 'r') as f:
-    #     counteri = 0
-    #     startj = 1
-    #     for line in f:
-    #         toConsider = line.split()
-    #         matSize = len(toConsider)
-
-  
-
-        
-
-    #         a += toConsider[startj:matSize] #enormous memory problem here
-    #         newIndices += [[counteri, j] for j in range(startj, matSize)]#in both of these lines. Creates a lot pf dead lists it seems so
-
-    #         startj += 1
-    #         counteri += 1
-    # for i in range(len(a)):
-    #     a[i] = float(a[i]) #or we should try int
-
-    #aa = int(input('aa: '))
-    
-    # a = np.triu(adjacencyMatrix)#upper triangle of a matrix
-    # print(1)
-    # np.fill_diagonal(a, 0)
-    # print(2)
-    # hm = np.nonzero(a)
-    # print(3)
-
-    # #newIndices = np.array(list(zip(hm[0], hm[1])))
-    # newIndices = list(zip(hm[0], hm[1]))
-    # for i in range(len(newIndices)):
-    #     newIndices[i] = list(newIndices[i])
-    
-    # print(4)
-
-    # #a = a.flatten()
-    # a = a.ravel()
-    # a = a[np.nonzero(a)]
-    #a = np.array(a)
-   
-    # a = a[hm]
-    # newIndices = [newIndices[i] for i in hm]
-    print(5)
+    print("preprocessing done")
     pizda = 1
-    
-
-
     
     isUsed = np.zeros(matSize)
     path,lengthes = [], []
@@ -191,43 +125,24 @@ def greedySymmetricTSP(adjacencyMatrixFile, startingNode):#works only with symme
                 isUsed[newIndices[counter][0]] += 1
                 isUsed[newIndices[counter][1]] += 1
                 
-                if isUsed[newIndices[counter][0]] >= 2:#this thing uses so much memory somehow. Which one though? 
-                    pass
-                    # boolMask = np.any(np.isin(newIndices, newIndices[counter][0]), axis=1)
-                    
-                    # boolMask[:counter+1] = False
-                
-                    # boolMask = np.invert(boolMask)
-                    # a, newIndices = a[boolMask], newIndices[boolMask]
-                    #del boolMask #?????
-                    
-                if isUsed[newIndices[counter][1]] >= 2:
-                    pass
-                    # boolMask = np.any(np.isin(newIndices, newIndices[counter][1]), axis=1)
-                    # boolMask[:counter+1] = False
-                    # boolMask = np.invert(boolMask)
-                    # a, newIndices = a[boolMask], newIndices[boolMask]
-                    #del boolMask #?????
          
         counter += 1
         n = len(a)-1
 
-    #print("SUKAAAAAAA")
+
     theLastEdge = np.where(isUsed == 1)[0]
     theLastEdge.sort()
     path.append(theLastEdge)
-    with open(adjacencyMatrixFile, 'r') as f:
-        counter = 0
-        for line in f:
-            if counter == theLastEdge[0]:
-                lengthes += [float(line.split()[theLastEdge[1]])]
-                break
-            counter += 1
-    #lengthes.append(adjacencyMatrix[theLastEdge[0]][theLastEdge[1]]) #may not work lol
-    
 
-    #print("Initial part is done. Now let's sort the path")
+    hm = np.load(adjacencyMatrixFile)
+    theLastLength = hm[theLastEdge[0]][theLastEdge[1]]
+    del hm#????
+    lengthes.append(theLastLength)
 
+    print("The path is formed. Now let's sort it")
+
+
+    #my sorting is super slow
     sortedPath = []
     sortedLengthes = []
 
@@ -270,3 +185,6 @@ print(a['all'])
 #heeeeeyyyyy
 #cnahges are here! 
 #sweet new changes. Very good changes
+
+
+print(os.getcwd())
