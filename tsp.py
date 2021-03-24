@@ -255,16 +255,16 @@ adjacencyMatrix = [[0, 10, 15, 20], [10, 0, 35, 25], [15, 35, 0, 30], [20, 25, 3
 a = greedySymmetricTSP(adjacencyMatrix, 0)
 print(a)
 
-# adjacencyMatrix = [[0, 12, 10, 19, 8], [12, 0, 3, 7, 2], [10, 3, 0, 6, 20], [19, 7, 6, 0, 4], [8, 2, 20, 4, 0]]
+adjacencyMatrix = [[0, 12, 10, 19, 8], [12, 0, 3, 7, 2], [10, 3, 0, 6, 20], [19, 7, 6, 0, 4], [8, 2, 20, 4, 0]]
 
-# a = greedySymmetricTSP(adjacencyMatrix, 0)
-# print(a)
+a = greedySymmetricTSP(adjacencyMatrix, 0)
+print(a)
 
 
-# n = 1_000
-# adjacencyMatrix = np.absolute(np.random.normal(0, 100, n**2)).reshape(n, n)
-# a = greedySymmetricTSP(adjacencyMatrix, 0)
-# print(a['all'])
+n = 1_000
+adjacencyMatrix = np.absolute(np.random.normal(0, 100, n**2)).reshape(n, n)
+a = greedySymmetricTSP(adjacencyMatrix, 0)
+print(a['all'])
 
 
 #heeeeeyyyyy
