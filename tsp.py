@@ -8,6 +8,7 @@ import os
 def transformPointsToDistances(toWorkWithFile, name, dirToSave):
     
     toWorkWith = np.delete(np.loadtxt(toWorkWithFile), 0, axis=1)
+    toWorkWith = np.unique(toWorkWith, axis=0)
     n = len(toWorkWith)
     arrayToFill = np.zeros([n,n])
 
@@ -30,12 +31,16 @@ def transformPointsToDistances(toWorkWithFile, name, dirToSave):
 
 
 def drawGraph(verticesFile, path, name, dirToSave, ext):
-    toWorkWith = np.delete(np.loadtxt(verticesFile), 0, axis=1).T #problems can be here
+    toWorkWith = np.delete(np.loadtxt(verticesFile), 0, axis=1)
+    toWorkWith = np.unique(toWorkWith, axis=0).T #problems can be here
     x = toWorkWith[0]
     y = toWorkWith[1]
     x = x[path]
     y = y[path]
     plt.plot(x,y, 'k,-', linewidth=0.1)#'k.-'
+    #plt.axis('off')
+    plt.xticks([])
+    plt.yticks([])
     plt.savefig(dirToSave + name + ext)
     plt.close()
 
@@ -140,7 +145,7 @@ def greedySymmetricTSP(adjacencyMatrixFile, startingNode):#works only with symme
     prevNode = startingNode
     currentNode = adjListDict[startingNode][0]#let's go in that direction
     sortedNodes = [startingNode, currentNode]
-    while currentNode != startingNode: #doesn't work right
+    while currentNode != startingNode: 
         nextNode = getNextNode(currentNode, prevNode, adjListDict)
         prevNode = currentNode
         currentNode = nextNode
@@ -150,7 +155,7 @@ def greedySymmetricTSP(adjacencyMatrixFile, startingNode):#works only with symme
     sortedEdgesFromWhichWeCanSample = np.array(sortedEdges.copy())
     sortedEdgesFromWhichWeCanSample.sort(axis=1)
     hm = sortedEdgesFromWhichWeCanSample.T
-    sortedLengthes = a[hm[0], hm[1]]#??????
+    sortedLengthes = a[hm[0], hm[1]]#
         
     return {'path': sortedEdges, 'lengthes': sortedLengthes, 'all': sum(sortedLengthes)}
 
