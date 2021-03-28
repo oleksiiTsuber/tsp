@@ -49,26 +49,80 @@ def drawGraph(verticesFile, path, name, dirToSave, ext):
 
 
 
-def greedySymmetricTSP(adjacencyMatrixFile, startingNode):#works only with symmetric TSPs
+def greedySymmetricTSP(adjacencyMatrixFile, startingNode, adjMatTrue):#works only with symmetric TSPs
     
     if type(adjacencyMatrixFile) != str:
         name = os.getcwd()
         np.save(name + 'temp' + '.npy', adjacencyMatrixFile)
         adjacencyMatrixFile = name + 'temp' + '.npy'
+    else:
+        if adjacencyMatrixFile.split('.')[-1] != 'npy':
+            a = np.loadtxt(adjacencyMatrixFile)
+            if len(a[0]) == 3:
+                a = np.delete(a, 0, axis=1)
+            a = np.unique(a, axis=0)
+            name = os.getcwd()
+            np.save(name + 'temp' + '.npy', a)
+            adjacencyMatrixFile = name + 'temp' + '.npy'
 
     a = np.load(adjacencyMatrixFile)
-    matSize = len(a[0])
-    #print("a: ", a)
-    a = np.triu(a)
-    np.fill_diagonal(a, 0)
-    newIndices = np.nonzero(a)
-    a = a[newIndices]
+    
+    if adjMatTrue:
+        #a = np.load(adjacencyMatrixFile)
+        matSize = len(a[0])
+        a = np.triu(a)#good code but memory-intensive
+        np.fill_diagonal(a, 0)
+        newIndices = np.nonzero(a)
+        a = a[newIndices]
+    else:
+        #do newIndices
+        #do a 
+        #a = np.loadtxt(adjacencyMatrixFile)
+        if len(a[0]) == 3:
+            a = np.delete(a, 0, axis=1)
+        matSize = len(a)
+        newIndices = np.zeros((2, sum(range(matSize))), dtype = np.uint16)
+        b = np.zeros(sum(range(matSize)))
+        counter = 0
+        n = matSize
+
+        pizda = 1
+        
+        for i in range(n-1):
+            pizda = 1
+            x1 = np.repeat(a[i][0], n-(i+1))
+            y1 = np.repeat(a[i][1], n-(i+1))
+            x2 = a[i+1:n].T[0]
+            y2 = a[i+1:n].T[1]
+            pizda = 1
+            dob = np.sqrt( (x1 - x2)**2 + (y1 - y2)**2   )
+            nextCounter = counter+len(dob)
+            pizda = 1
+            b[counter:nextCounter] = dob #I hope it works
+            pizda = 1
+            newIndices[0][counter:nextCounter] = np.repeat(i, len(dob))
+            pizda = 1
+            newIndices[1][counter:nextCounter] = np.arange(i+1, n)
+            pizda = 1
+            counter = nextCounter
+            #arrayToFill[i][i+1:n] = np.sqrt( (x1 - x2)**2 + (y1 - y2)**2   )
+        pass
+        a = b
+        del b#?????????
+    pizda = 1
+    
+    
+
+
+
     newIndices = np.array([newIndices[0], newIndices[1]]).T
     hm = a.argsort()#I should study this function
-    newIndices = newIndices[hm]
-    #a, newIndices = a[hm], newIndices[hm]
     n = len(a)-1
     del a 
+    pizda = 1
+    newIndices = newIndices[hm]#get as far as here
+    #a, newIndices = a[hm], newIndices[hm]
+    
     del hm
     adjListDict = {i : [] for i in range(matSize)}#there are huge problems with init
     isUsed = np.zeros(matSize)
@@ -86,7 +140,7 @@ def greedySymmetricTSP(adjacencyMatrixFile, startingNode):#works only with symme
         thereIsCycle = False#yeah we'll stick to this one
         
         connectivityBeforeChanges = [isUsed[newIndices[counter][0]], isUsed[newIndices[counter][1]]]
-        
+        pizda = 1
         if isUsed[newIndices[counter][0]] < 2 and isUsed[newIndices[counter][1]] < 2:
             if connectivityBeforeChanges == [1, 1]:
 
@@ -134,11 +188,6 @@ def greedySymmetricTSP(adjacencyMatrixFile, startingNode):#works only with symme
     theLastEdge.sort()
     adjListDict[theLastEdge[0]].append(theLastEdge[1])
     adjListDict[theLastEdge[1]].append(theLastEdge[0])
-    a = np.load(adjacencyMatrixFile)#or maybe we actually need it
-    theLastLength = a[theLastEdge[0]][theLastEdge[1]]
-    #del a#????
-    #lengthes.append(theLastLength)
-    #print("Path: ", path)
     print("The path is formed. Now let's sort it")
     #sortedLengthes = lengthes
     
@@ -155,8 +204,22 @@ def greedySymmetricTSP(adjacencyMatrixFile, startingNode):#works only with symme
     sortedEdgesFromWhichWeCanSample = np.array(sortedEdges.copy())
     sortedEdgesFromWhichWeCanSample.sort(axis=1)
     hm = sortedEdgesFromWhichWeCanSample.T
-    sortedLengthes = a[hm[0], hm[1]]#
-        
+    a = np.load(adjacencyMatrixFile)
+    if adjMatTrue:
+        #a = np.load(adjacencyMatrixFile)#or maybe we actually need it
+        sortedLengthes = a[hm[0], hm[1]]#
+    else:
+        if len(a[0]) == 3:
+            a = np.delete(a, 0, axis=1)
+        sortedLengthes = []#maybe should've been better np.array
+        for i in range(len(sortedEdges)):#maybe inefficient
+            x1 = a[sortedEdges[i][0]][0]
+            y1 = a[sortedEdges[i][0]][1]
+            x2 = a[sortedEdges[i][1]][0]
+            y2 = a[sortedEdges[i][1]][1]
+            sortedLengthes.append(math.sqrt((x1-x2)**2 + (y1-y2)**2))
+            pass
+       
     return {'path': sortedEdges, 'lengthes': sortedLengthes, 'all': sum(sortedLengthes)}
 
 
@@ -164,24 +227,29 @@ def greedySymmetricTSP(adjacencyMatrixFile, startingNode):#works only with symme
 
 adjacencyMatrix = [[0, 10, 15, 20], [10, 0, 35, 25], [15, 35, 0, 30], [20, 25, 30, 0]]
 
-a = greedySymmetricTSP(adjacencyMatrix, 0)
+a = greedySymmetricTSP(adjacencyMatrix, 0, True)
 print(a)
 
 adjacencyMatrix = [[0, 12, 10, 19, 8], [12, 0, 3, 7, 2], [10, 3, 0, 6, 20], [19, 7, 6, 0, 4], [8, 2, 20, 4, 0]]
 
-a = greedySymmetricTSP(adjacencyMatrix, 3)
+a = greedySymmetricTSP(adjacencyMatrix, 3, True)
 print(a)
 
 
-# n = 1_000
-# adjacencyMatrix = np.absolute(np.random.normal(0, 100, n**2)).reshape(n, n)
-# a = greedySymmetricTSP(adjacencyMatrix, 0)
-# print(a['all'])
+n = 1_000
+adjacencyMatrix = np.absolute(np.random.normal(0, 100, n**2)).reshape(n, n)
+a = greedySymmetricTSP(adjacencyMatrix, 0, True)
+print(a['all'])
 
 
-#heeeeeyyyyy
-#cnahges are here! 
-#sweet new changes. Very good changes
 
 
-print(os.getcwd())
+listOfNodes = [
+    [1, 1], 
+    [1, 5], 
+    [11, 1], 
+    [11, 5]
+]
+
+a = greedySymmetricTSP(listOfNodes, 3, False)
+print(a)
