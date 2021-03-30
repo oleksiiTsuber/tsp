@@ -68,16 +68,12 @@ def greedySymmetricTSP(adjacencyMatrixFile, startingNode, adjMatTrue):#works onl
     a = np.load(adjacencyMatrixFile)
     
     if adjMatTrue:
-        #a = np.load(adjacencyMatrixFile)
         matSize = len(a[0])
         a = np.triu(a)#good code but memory-intensive
         np.fill_diagonal(a, 0)
         newIndices = np.nonzero(a)
         a = a[newIndices]
     else:
-        #do newIndices
-        #do a 
-        #a = np.loadtxt(adjacencyMatrixFile)
         if len(a[0]) == 3:
             a = np.delete(a, 0, axis=1)
         matSize = len(a)
@@ -106,9 +102,8 @@ def greedySymmetricTSP(adjacencyMatrixFile, startingNode, adjMatTrue):#works onl
             pizda = 1
             counter = nextCounter
             #arrayToFill[i][i+1:n] = np.sqrt( (x1 - x2)**2 + (y1 - y2)**2   )
-        pass
         a = b
-        del b#?????????
+        del b
     pizda = 1
     
     
@@ -225,7 +220,12 @@ def greedySymmetricTSP(adjacencyMatrixFile, startingNode, adjMatTrue):#works onl
 
 
 
-adjacencyMatrix = [[0, 10, 15, 20], [10, 0, 35, 25], [15, 35, 0, 30], [20, 25, 30, 0]]
+adjacencyMatrix = [
+    [0, 10, 15, 20]
+, [10, 0, 35, 25]
+, [15, 35, 0, 30]
+, [20, 25, 30, 0]
+]
 
 a = greedySymmetricTSP(adjacencyMatrix, 0, True)
 print(a)
