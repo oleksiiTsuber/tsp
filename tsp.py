@@ -82,9 +82,7 @@ def greedySymmetricTSP(adjacencyMatrixFile, startingNode, adjMatTrue):#works onl
         counter = 0
         n = matSize
 
-        pizda = 1
-        
-        for i in range(n-1):
+        for i in range(n-1): #should abstract it somehow
             pizda = 1
             x1 = np.repeat(a[i][0], n-(i+1))
             y1 = np.repeat(a[i][1], n-(i+1))
@@ -101,19 +99,22 @@ def greedySymmetricTSP(adjacencyMatrixFile, startingNode, adjMatTrue):#works onl
             newIndices[1][counter:nextCounter] = np.arange(i+1, n)
             pizda = 1
             counter = nextCounter
+
+            #del dob, x1, y1, x2, y2#shouldn't work
             #arrayToFill[i][i+1:n] = np.sqrt( (x1 - x2)**2 + (y1 - y2)**2   )
         a = b
         del b
     pizda = 1
+    print("got THIS far")
     
+
+
+
     
-
-
-
-    newIndices = np.array([newIndices[0], newIndices[1]]).T
     hm = a.argsort()#I should study this function
     n = len(a)-1
     del a 
+    newIndices = np.array([newIndices[0], newIndices[1]]).T#????????????????????????
     pizda = 1
     newIndices = newIndices[hm]#get as far as here
     #a, newIndices = a[hm], newIndices[hm]
@@ -130,7 +131,7 @@ def greedySymmetricTSP(adjacencyMatrixFile, startingNode, adjMatTrue):#works onl
             if i != prevNode_:
                 return i
 
-    for counter in range(0, n):#while counter != n: 
+    for counter in range(0, n):#while counter != n: #should write this thing in C
         #print('n, counter: ', n, counter)
         thereIsCycle = False#yeah we'll stick to this one
         
@@ -184,12 +185,16 @@ def greedySymmetricTSP(adjacencyMatrixFile, startingNode, adjMatTrue):#works onl
     adjListDict[theLastEdge[0]].append(theLastEdge[1])
     adjListDict[theLastEdge[1]].append(theLastEdge[0])
     print("The path is formed. Now let's sort it")
+    pizda = 1
     #sortedLengthes = lengthes
     
     prevNode = startingNode
     currentNode = adjListDict[startingNode][0]#let's go in that direction
     sortedNodes = [startingNode, currentNode]
+    pizda = 1
     while currentNode != startingNode: 
+        print(len(sortedNodes))
+        pizda = 1
         nextNode = getNextNode(currentNode, prevNode, adjListDict)
         prevNode = currentNode
         currentNode = nextNode
@@ -197,7 +202,7 @@ def greedySymmetricTSP(adjacencyMatrixFile, startingNode, adjMatTrue):#works onl
 
     sortedEdges = [ [sortedNodes[i-1],sortedNodes[i]] for i in range(1, len(sortedNodes)) ]#seems to work allright
     sortedEdgesFromWhichWeCanSample = np.array(sortedEdges.copy())
-    sortedEdgesFromWhichWeCanSample.sort(axis=1)
+    sortedEdgesFromWhichWeCanSample.sort(axis=1) #????????????????????????????????????????????????????????????????????????????????????????????
     hm = sortedEdgesFromWhichWeCanSample.T
     a = np.load(adjacencyMatrixFile)
     if adjMatTrue:
@@ -215,7 +220,191 @@ def greedySymmetricTSP(adjacencyMatrixFile, startingNode, adjMatTrue):#works onl
             sortedLengthes.append(math.sqrt((x1-x2)**2 + (y1-y2)**2))
             pass
        
-    return {'path': sortedEdges, 'lengthes': sortedLengthes, 'all': sum(sortedLengthes)}
+    return {'sortedNodes': sortedNodes,  'path': sortedEdges, 'lengthes': sortedLengthes, 'all': sum(sortedLengthes)}
+
+
+
+
+
+
+
+
+# def symmetricTSPpostProcessing(adjacencyMatrixFile, sortedNodes, adjListDict, percent):
+
+#     if type(adjacencyMatrixFile) != str:
+#         name = os.getcwd()
+#         np.save(name + 'temp' + '.npy', adjacencyMatrixFile)
+#         adjacencyMatrixFile = name + 'temp' + '.npy'
+#     else:
+#         if adjacencyMatrixFile.split('.')[-1] != 'npy':
+#             a = np.loadtxt(adjacencyMatrixFile)
+#             if len(a[0]) == 3:
+#                 a = np.delete(a, 0, axis=1)
+#             a = np.unique(a, axis=0)
+#             name = os.getcwd()
+#             np.save(name + 'temp' + '.npy', a)
+#             adjacencyMatrixFile = name + 'temp' + '.npy'
+
+#     adjacencyMatrix = np.load(adjacencyMatrixFile)
+    
+
+#     path = np.array([[sortedNodes[i-1], sortedNodes[i]] for i in range(1, len(sortedNodes))])
+#     path.sort(axis=1)
+#     pathToSample = path.T
+#     relevantLengthes = adjacencyMatrix[pathToSample[0], pathToSample[1]]#I hope it works
+
+#     hm = np.flip(np.argsort(relevantLengthes)) #we should start from the largest lengths of course 
+#     path, relevantLengthes = path[hm], relevantLengthes[hm]
+    
+
+#     def findNearestNeighbor_(n_, nodesToAvoid_, adjacencyMatrix_):
+#         arrHorizontal_ = adjacencyMatrix_[n_, : ]
+#         arrVertical_ = adjacencyMatrix_[ :, n_]
+#         for i in nodesToAvoid_:
+#             arrHorizontal_[i] = np.inf
+#             arrVertical_[i] = np.inf #I hope it works
+#         zerosOnHorisontal_ = n_ + 1
+#         zerosOnVertical_ = len(adjacencyMatrix_) - n_
+#         arrHorizontal_[0:zerosOnHorisontal_] = np.repeat(np.inf, zerosOnHorisontal_)
+#         arrVertical_[n_:len(arrVertical_)] = np.repeat(np.inf, zerosOnVertical_)#I really really hope it will work. Otherwhise I don't know how to test it
+
+#         minNodeHorizontal_ = np.argmin(arrHorizontal_)
+#         minLengthHorizontal_ = np.min(arrHorizontal_)
+#         minNodeVertical_ = np.argmin(arrVertical_)
+#         minLengthVertical_ = np.min(arrVertical_)
+#         minNodes_ = np.array([minNodeHorizontal_, minNodeVertical_])
+#         minLengthes_ = np.array([minLengthHorizontal_, minLengthVertical_])
+#         hm_ = np.argsort(minLengthes_)
+#         minNodes_ = minNodes_[hm_]
+#         return minNodes_[0]
+
+#     adjListDictNearestNeighbors = {i : findNearestNeighbor_(i, adjListDict[i], adjacencyMatrix) for i in range(len(adjListDict))}#?? maybe I don't need it
+
+#     numberToDo = int(len(sortedNodes) * percent)
+#     weAreDone = False
+#     while not weAreDone:
+#         weAreDone = True
+#         for i in range(numberToDo):
+#             for j in range(len(path[i])):
+#                 nearestNeighbor = findNearestNeighbor_(path[i][j], adjListDict[path[i][j]], adjacencyMatrix)
+
+#                 pass 
+        
+#     pass 
+
+
+
+
+
+def symmetricTSPpostProcessing(adjacencyMatrixFile, sortedNodes):
+    
+
+    if type(adjacencyMatrixFile) != str:
+        name = os.getcwd()
+        np.save(name + 'temp' + '.npy', adjacencyMatrixFile)
+        adjacencyMatrixFile = name + 'temp' + '.npy'
+    else:
+        if adjacencyMatrixFile.split('.')[-1] != 'npy':
+            a = np.loadtxt(adjacencyMatrixFile)
+            if len(a[0]) == 3:
+                a = np.delete(a, 0, axis=1)
+            a = np.unique(a, axis=0)
+            name = os.getcwd()
+            np.save(name + 'temp' + '.npy', a)
+            adjacencyMatrixFile = name + 'temp' + '.npy'
+
+    adjacencyMatrix = np.load(adjacencyMatrixFile)
+    sortedNodes = sortedNodes[:-1] #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    positionsDict = {sortedNodes[i] : i for i in range(len(sortedNodes))}#but how will we change it? Do this very thing after every successful insertion? 
+
+    def findNearestNeighbor_(n_, nodesToAvoid_, adjacencyMatrix_):
+        arrHorizontal_ = adjacencyMatrix_[n_, : ]
+        arrVertical_ = adjacencyMatrix_[ :, n_]
+        for i in nodesToAvoid_:
+            pizda = 1
+            arrHorizontal_[i] = np.inf
+            arrVertical_[i] = np.inf #I hope it works
+        zerosOnHorisontal_ = n_ + 1
+        zerosOnVertical_ = len(adjacencyMatrix_) - n_
+        arrHorizontal_[0:zerosOnHorisontal_] = np.repeat(np.inf, zerosOnHorisontal_)
+        arrVertical_[n_:len(arrVertical_)] = np.repeat(np.inf, zerosOnVertical_)#I really really hope it will work. Otherwhise I don't know how to test it
+
+        minNodeHorizontal_ = np.argmin(arrHorizontal_)
+        minLengthHorizontal_ = np.min(arrHorizontal_)
+        minNodeVertical_ = np.argmin(arrVertical_)
+        minLengthVertical_ = np.min(arrVertical_)
+        minNodes_ = np.array([minNodeHorizontal_, minNodeVertical_])
+        minLengthes_ = np.array([minLengthHorizontal_, minLengthVertical_])
+        hm_ = np.argsort(minLengthes_)
+        minNodes_ = minNodes_[hm_]
+        return minNodes_[0]
+
+    def sample_(nodes_, adjacencyMatrix_):
+        hm_ = np.sort(nodes_)
+        hm_ = hm_.T 
+        return adjacencyMatrix[hm_[0], hm_[1]] #I hope it works
+    
+    
+    weAreDone = False
+    while not weAreDone:
+        weAreDone = True
+        for i in range(len(sortedNodes)):
+            nn = findNearestNeighbor_(sortedNodes[i], [sortedNodes[i-1], sortedNodes[(i+1) % len(sortedNodes)]], adjacencyMatrix)#I hope it works
+            positionOfnn = positionsDict[nn]
+
+            edgesToSubtractInDeletionPlace = np.array([[sortedNodes[i-1], sortedNodes[i]], [sortedNodes[i], sortedNodes[(i+1) % len(sortedNodes)] ] ])
+            edgesToAddInDeletionPlace = np.array([ [sortedNodes[i-1], sortedNodes[(i+1) % len(sortedNodes)]] ])
+
+            edgesToSubstractFromTheLeft = np.array([ [sortedNodes[positionOfnn-1] , sortedNodes[positionOfnn] ]  ])
+            edgesToAddFromTheLeft = np.array([ [ sortedNodes[positionOfnn-1] , sortedNodes[i] ] ,   [ sortedNodes[i]  ,  sortedNodes[positionOfnn] ] ])
+
+            edgesToSubstractFromTheRight = np.array([ [sortedNodes[positionOfnn] , sortedNodes[(positionOfnn+1) % len(sortedNodes)] ]  ])
+            edgesToAddFromTheRight = np.array([ [ sortedNodes[positionOfnn] , sortedNodes[i] ] ,   [ sortedNodes[i]  ,  sortedNodes[(positionOfnn+1)% len(sortedNodes)] ] ])
+
+            lengthesToSubstractInDeletionPlace = sample_(edgesToSubtractInDeletionPlace, adjacencyMatrix)
+            lengthesToAddInDeletionPlace = sample_(edgesToAddInDeletionPlace, adjacencyMatrix)
+
+            lengthesToSubstractFromTheLeft = sample_(edgesToSubstractFromTheLeft, adjacencyMatrix)
+            lengthesToAddFromTheLeft = sample_(edgesToAddFromTheLeft, adjacencyMatrix)
+
+            lengthesToSubstractFromTheRight = sample_(edgesToSubstractFromTheRight, adjacencyMatrix)
+            lengthesToAddFromTheRight = sample_(edgesToAddFromTheRight, adjacencyMatrix)
+
+            variant1 = np.sum(lengthesToAddInDeletionPlace) - np.sum(lengthesToSubstractInDeletionPlace) + np.sum(lengthesToAddFromTheLeft) - np.sum(lengthesToSubstractFromTheLeft)
+            variant2 = np.sum(lengthesToAddInDeletionPlace) - np.sum(lengthesToSubstractInDeletionPlace) + np.sum(lengthesToAddFromTheRight) - np.sum(lengthesToSubstractFromTheRight)
+
+            if variant1 < 0 or variant2 < 0:
+                print("HO")
+                weAreDone = False
+                if variant1 <= variant2:#from the left
+                    sortedNodes.insert(positionOfnn-1, sortedNodes.pop(i)) #I reaaaaally hope it works 
+                    pass 
+                if variant2 < variant1:#from the right
+                    sortedNodes.insert(positionOfnn, sortedNodes.pop(i))
+                    pass
+                positionsDict = {sortedNodes[i] : i for i in range(len(sortedNodes))}
+                
+    sortedNodes.append(sortedNodes[0])
+    sortedEdges = [ [sortedNodes[i-1],sortedNodes[i]] for i in range(1, len(sortedNodes)) ]
+    sortedEdgesFromWhichWeCanSample = np.array(sortedEdges.copy())
+    sortedEdgesFromWhichWeCanSample.sort(axis=1) #????????????????????????????????????????????????????????????????????????????????????????????
+    hm = sortedEdgesFromWhichWeCanSample.T
+    sortedLengthes = a[hm[0], hm[1]]#
+    
+    return {'sortedNodes': sortedNodes,  'path': sortedEdges, 'lengthes': sortedLengthes, 'all': sum(sortedLengthes)}
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -236,20 +425,20 @@ a = greedySymmetricTSP(adjacencyMatrix, 3, True)
 print(a)
 
 
-n = 1_000
-adjacencyMatrix = np.absolute(np.random.normal(0, 100, n**2)).reshape(n, n)
-a = greedySymmetricTSP(adjacencyMatrix, 0, True)
-print(a['all'])
+# n = 1_000
+# adjacencyMatrix = np.absolute(np.random.normal(0, 100, n**2)).reshape(n, n)
+# a = greedySymmetricTSP(adjacencyMatrix, 0, True)
+# print(a['all'])
 
 
 
 
-listOfNodes = [
-    [1, 1], 
-    [1, 5], 
-    [11, 1], 
-    [11, 5]
-]
+# listOfNodes = [
+#     [1, 1], 
+#     [1, 5], 
+#     [11, 1], 
+#     [11, 5]
+# ]
 
-a = greedySymmetricTSP(listOfNodes, 3, False)
-print(a)
+# a = greedySymmetricTSP(listOfNodes, 3, False)
+# print(a)
