@@ -229,72 +229,6 @@ def greedySymmetricTSP(adjacencyMatrixFile, startingNode, adjMatTrue):#works onl
 
 
 
-# def symmetricTSPpostProcessing(adjacencyMatrixFile, sortedNodes, adjListDict, percent):
-
-#     if type(adjacencyMatrixFile) != str:
-#         name = os.getcwd()
-#         np.save(name + 'temp' + '.npy', adjacencyMatrixFile)
-#         adjacencyMatrixFile = name + 'temp' + '.npy'
-#     else:
-#         if adjacencyMatrixFile.split('.')[-1] != 'npy':
-#             a = np.loadtxt(adjacencyMatrixFile)
-#             if len(a[0]) == 3:
-#                 a = np.delete(a, 0, axis=1)
-#             a = np.unique(a, axis=0)
-#             name = os.getcwd()
-#             np.save(name + 'temp' + '.npy', a)
-#             adjacencyMatrixFile = name + 'temp' + '.npy'
-
-#     adjacencyMatrix = np.load(adjacencyMatrixFile)
-    
-
-#     path = np.array([[sortedNodes[i-1], sortedNodes[i]] for i in range(1, len(sortedNodes))])
-#     path.sort(axis=1)
-#     pathToSample = path.T
-#     relevantLengthes = adjacencyMatrix[pathToSample[0], pathToSample[1]]#I hope it works
-
-#     hm = np.flip(np.argsort(relevantLengthes)) #we should start from the largest lengths of course 
-#     path, relevantLengthes = path[hm], relevantLengthes[hm]
-    
-
-#     def findNearestNeighbor_(n_, nodesToAvoid_, adjacencyMatrix_):
-#         arrHorizontal_ = adjacencyMatrix_[n_, : ]
-#         arrVertical_ = adjacencyMatrix_[ :, n_]
-#         for i in nodesToAvoid_:
-#             arrHorizontal_[i] = np.inf
-#             arrVertical_[i] = np.inf #I hope it works
-#         zerosOnHorisontal_ = n_ + 1
-#         zerosOnVertical_ = len(adjacencyMatrix_) - n_
-#         arrHorizontal_[0:zerosOnHorisontal_] = np.repeat(np.inf, zerosOnHorisontal_)
-#         arrVertical_[n_:len(arrVertical_)] = np.repeat(np.inf, zerosOnVertical_)#I really really hope it will work. Otherwhise I don't know how to test it
-
-#         minNodeHorizontal_ = np.argmin(arrHorizontal_)
-#         minLengthHorizontal_ = np.min(arrHorizontal_)
-#         minNodeVertical_ = np.argmin(arrVertical_)
-#         minLengthVertical_ = np.min(arrVertical_)
-#         minNodes_ = np.array([minNodeHorizontal_, minNodeVertical_])
-#         minLengthes_ = np.array([minLengthHorizontal_, minLengthVertical_])
-#         hm_ = np.argsort(minLengthes_)
-#         minNodes_ = minNodes_[hm_]
-#         return minNodes_[0]
-
-#     adjListDictNearestNeighbors = {i : findNearestNeighbor_(i, adjListDict[i], adjacencyMatrix) for i in range(len(adjListDict))}#?? maybe I don't need it
-
-#     numberToDo = int(len(sortedNodes) * percent)
-#     weAreDone = False
-#     while not weAreDone:
-#         weAreDone = True
-#         for i in range(numberToDo):
-#             for j in range(len(path[i])):
-#                 nearestNeighbor = findNearestNeighbor_(path[i][j], adjListDict[path[i][j]], adjacencyMatrix)
-
-#                 pass 
-        
-#     pass 
-
-
-
-
 
 def symmetricTSPpostProcessing(adjacencyMatrixFile, sortedNodes):
     
@@ -318,8 +252,8 @@ def symmetricTSPpostProcessing(adjacencyMatrixFile, sortedNodes):
     positionsDict = {sortedNodes[i] : i for i in range(len(sortedNodes))}#but how will we change it? Do this very thing after every successful insertion? 
 
     def findNearestNeighbor_(n_, nodesToAvoid_, adjacencyMatrix_):
-        arrHorizontal_ = adjacencyMatrix_[n_, : ]
-        arrVertical_ = adjacencyMatrix_[ :, n_]
+        arrHorizontal_ = adjacencyMatrix_[n_, : ].copy()
+        arrVertical_ = adjacencyMatrix_[ :, n_].copy()
         for i in nodesToAvoid_:
             pizda = 1
             arrHorizontal_[i] = np.inf
@@ -342,54 +276,105 @@ def symmetricTSPpostProcessing(adjacencyMatrixFile, sortedNodes):
     def sample_(nodes_, adjacencyMatrix_):
         hm_ = np.sort(nodes_)
         hm_ = hm_.T 
-        return adjacencyMatrix[hm_[0], hm_[1]] #I hope it works
+        pizda = 1
+        return adjacencyMatrix_[hm_[0], hm_[1]] #I hope it works
     
+    def costFunction_(nodes_, adjacencyMatrix_):
+        nodes1_ = nodes_.copy()
+        nodes1_.append(nodes1_[0])
+        hm_ = np.array([[nodes1_[i-1] , nodes1_[i]] for i in range(1, len(nodes1_))])
+        hm_.sort(axis=1)
+        hm_ = hm_.T 
+        return np.sum(adjacencyMatrix_[hm_[0], hm_[1]])
+
     
     weAreDone = False
     while not weAreDone:
         weAreDone = True
         for i in range(len(sortedNodes)):
-            nn = findNearestNeighbor_(sortedNodes[i], [sortedNodes[i-1], sortedNodes[(i+1) % len(sortedNodes)]], adjacencyMatrix)#I hope it works
-            positionOfnn = positionsDict[nn]
+            pizda = 1
+            
+            pizda = 1
 
-            edgesToSubtractInDeletionPlace = np.array([[sortedNodes[i-1], sortedNodes[i]], [sortedNodes[i], sortedNodes[(i+1) % len(sortedNodes)] ] ])
-            edgesToAddInDeletionPlace = np.array([ [sortedNodes[i-1], sortedNodes[(i+1) % len(sortedNodes)]] ])
-
-            edgesToSubstractFromTheLeft = np.array([ [sortedNodes[positionOfnn-1] , sortedNodes[positionOfnn] ]  ])
-            edgesToAddFromTheLeft = np.array([ [ sortedNodes[positionOfnn-1] , sortedNodes[i] ] ,   [ sortedNodes[i]  ,  sortedNodes[positionOfnn] ] ])
-
-            edgesToSubstractFromTheRight = np.array([ [sortedNodes[positionOfnn] , sortedNodes[(positionOfnn+1) % len(sortedNodes)] ]  ])
-            edgesToAddFromTheRight = np.array([ [ sortedNodes[positionOfnn] , sortedNodes[i] ] ,   [ sortedNodes[i]  ,  sortedNodes[(positionOfnn+1)% len(sortedNodes)] ] ])
-
-            lengthesToSubstractInDeletionPlace = sample_(edgesToSubtractInDeletionPlace, adjacencyMatrix)
-            lengthesToAddInDeletionPlace = sample_(edgesToAddInDeletionPlace, adjacencyMatrix)
-
-            lengthesToSubstractFromTheLeft = sample_(edgesToSubstractFromTheLeft, adjacencyMatrix)
-            lengthesToAddFromTheLeft = sample_(edgesToAddFromTheLeft, adjacencyMatrix)
-
-            lengthesToSubstractFromTheRight = sample_(edgesToSubstractFromTheRight, adjacencyMatrix)
-            lengthesToAddFromTheRight = sample_(edgesToAddFromTheRight, adjacencyMatrix)
-
-            variant1 = np.sum(lengthesToAddInDeletionPlace) - np.sum(lengthesToSubstractInDeletionPlace) + np.sum(lengthesToAddFromTheLeft) - np.sum(lengthesToSubstractFromTheLeft)
-            variant2 = np.sum(lengthesToAddInDeletionPlace) - np.sum(lengthesToSubstractInDeletionPlace) + np.sum(lengthesToAddFromTheRight) - np.sum(lengthesToSubstractFromTheRight)
-
-            if variant1 < 0 or variant2 < 0:
+            backup = sortedNodes.copy()
+            partOne = backup[0:i+1]
+            partTwo = backup[i+1:len(backup)]
+            pizda = 1
+            backup = partTwo + partOne#big problems somewhere here
+            nn = findNearestNeighbor_(backup[-1], [backup[-2], backup[0]], adjacencyMatrix)
+            pizda = 1
+            positionOfnn = backup.index(nn)
+            partOne = backup[0:positionOfnn+1]
+            partOne.reverse()
+            partTwo = backup[positionOfnn+1:len(backup)] 
+            backup = partTwo + partOne
+            pizda = 1
+            if costFunction_(backup, adjacencyMatrix) < costFunction_(sortedNodes, adjacencyMatrix):
                 print("HO")
                 weAreDone = False
-                if variant1 <= variant2:#from the left
-                    sortedNodes.insert(positionOfnn-1, sortedNodes.pop(i)) #I reaaaaally hope it works 
-                    pass 
-                if variant2 < variant1:#from the right
-                    sortedNodes.insert(positionOfnn, sortedNodes.pop(i))
-                    pass
-                positionsDict = {sortedNodes[i] : i for i in range(len(sortedNodes))}
+                sortedNodes = backup
+            # nn = findNearestNeighbor_(sortedNodes[i], [sortedNodes[i-1], sortedNodes[(i+1) % len(sortedNodes)]], adjacencyMatrix)#I hope it works. Maybe the problem's here
+            # positionOfnn = positionsDict[nn]
+            # backup = sortedNodes.copy()
+            # costNow = costFunction_(backup, adjacencyMatrix)
+            # variant1 = backup.copy()
+            # variant1.insert(positionOfnn-1, variant1.pop(i))
+            # pizda = 1
+            # costOfVariant1 = costFunction_(variant1, adjacencyMatrix)
+            
+            # variant2 = backup.copy()
+            # variant2.insert(positionOfnn, variant2.pop(i))
+            # costOfVariant2 = costFunction_(variant2, adjacencyMatrix)
+
+            # if costOfVariant1 < costNow or costOfVariant2 < costNow:
+            #     print("HO")
+            #     weAreDone = False
+            #     if costOfVariant1 <= costOfVariant2:
+            #         sortedNodes = variant1
+            #     if costOfVariant2 < costOfVariant1:
+            #         sortedNodes = variant2
+            #     positionsDict = {sortedNodes[i] : i for i in range(len(sortedNodes))}
+
+
+            
+            # edgesToSubtractInDeletionPlace = np.array([[sortedNodes[i-1], sortedNodes[i]], [sortedNodes[i], sortedNodes[(i+1) % len(sortedNodes)] ] ])
+            # edgesToAddInDeletionPlace = np.array([ [sortedNodes[i-1], sortedNodes[(i+1) % len(sortedNodes)]] ])
+
+            # edgesToSubstractFromTheLeft = np.array([ [sortedNodes[positionOfnn-1] , sortedNodes[positionOfnn] ]  ])
+            # edgesToAddFromTheLeft = np.array([ [ sortedNodes[positionOfnn-1] , sortedNodes[i] ] ,   [ sortedNodes[i]  ,  sortedNodes[positionOfnn] ] ])
+
+            # edgesToSubstractFromTheRight = np.array([ [sortedNodes[positionOfnn] , sortedNodes[(positionOfnn+1) % len(sortedNodes)] ]  ])
+            # edgesToAddFromTheRight = np.array([ [ sortedNodes[positionOfnn] , sortedNodes[i] ] ,   [ sortedNodes[i]  ,  sortedNodes[(positionOfnn+1)% len(sortedNodes)] ] ])
+
+            # lengthesToSubstractInDeletionPlace = sample_(edgesToSubtractInDeletionPlace, adjacencyMatrix)
+            # lengthesToAddInDeletionPlace = sample_(edgesToAddInDeletionPlace, adjacencyMatrix)
+
+            # lengthesToSubstractFromTheLeft = sample_(edgesToSubstractFromTheLeft, adjacencyMatrix)
+            # lengthesToAddFromTheLeft = sample_(edgesToAddFromTheLeft, adjacencyMatrix)
+
+            # lengthesToSubstractFromTheRight = sample_(edgesToSubstractFromTheRight, adjacencyMatrix)
+            # lengthesToAddFromTheRight = sample_(edgesToAddFromTheRight, adjacencyMatrix)
+
+            # variant1 = np.sum(lengthesToAddInDeletionPlace) - np.sum(lengthesToSubstractInDeletionPlace) + np.sum(lengthesToAddFromTheLeft) - np.sum(lengthesToSubstractFromTheLeft)
+            # variant2 = np.sum(lengthesToAddInDeletionPlace) - np.sum(lengthesToSubstractInDeletionPlace) + np.sum(lengthesToAddFromTheRight) - np.sum(lengthesToSubstractFromTheRight)
+
+            # if variant1 < 0 or variant2 < 0:
+            #     print("HO")
+            #     weAreDone = False
+            #     if variant1 <= variant2:#from the left
+            #         sortedNodes.insert(positionOfnn-1, sortedNodes.pop(i)) #I reaaaaally hope it works 
+            #         pass 
+            #     if variant2 < variant1:#from the right
+            #         sortedNodes.insert(positionOfnn, sortedNodes.pop(i))
+            #         pass
+            #     positionsDict = {sortedNodes[i] : i for i in range(len(sortedNodes))}
                 
     sortedNodes.append(sortedNodes[0])
     sortedEdges = [ [sortedNodes[i-1],sortedNodes[i]] for i in range(1, len(sortedNodes)) ]
     sortedEdgesFromWhichWeCanSample = np.array(sortedEdges.copy())
     sortedEdgesFromWhichWeCanSample.sort(axis=1) #????????????????????????????????????????????????????????????????????????????????????????????
     hm = sortedEdgesFromWhichWeCanSample.T
-    sortedLengthes = a[hm[0], hm[1]]#
+    sortedLengthes = adjacencyMatrix[hm[0], hm[1]]#
     
     return {'sortedNodes': sortedNodes,  'path': sortedEdges, 'lengthes': sortedLengthes, 'all': sum(sortedLengthes)}
 
