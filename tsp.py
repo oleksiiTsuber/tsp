@@ -273,6 +273,23 @@ def symmetricTSPpostProcessing(adjacencyMatrixFile, sortedNodes):
         minNodes_ = minNodes_[hm_]
         return minNodes_[0]
 
+    def findNearestNeighbors_(n_, adjacencyMatrix_, number_):
+        arrHorizontal_ = adjacencyMatrix_[n_, : ].copy()
+        arrVertical_ = adjacencyMatrix_[ :, n_].copy()
+        arrHorizontal_[n_] = np.inf
+        arrVertical_[n_] = np.inf
+        zerosOnHorisontal_ = n_ + 1
+        zerosOnVertical_ = len(adjacencyMatrix_) - n_
+        arrHorizontal_[0:zerosOnHorisontal_] = np.repeat(np.inf, zerosOnHorisontal_)
+        arrVertical_[n_:len(arrVertical_)] = np.repeat(np.inf, zerosOnVertical_)
+        hmIndices_ = np.concatenate((np.arange(len(adjacencyMatrix)), np.arange(len(adjacencyMatrix))))
+        hm2_ = np.concatenate((arrHorizontal_, arrVertical_))
+        hmIndices_ = hmIndices_[np.argsort(hm2_)]
+
+        return hmIndices_[0:number_]
+    
+    
+    
     def sample_(nodes_, adjacencyMatrix_):
         hm_ = np.sort(nodes_)
         hm_ = hm_.T 
@@ -287,20 +304,46 @@ def symmetricTSPpostProcessing(adjacencyMatrixFile, sortedNodes):
         hm_ = hm_.T 
         return np.sum(adjacencyMatrix_[hm_[0], hm_[1]])
 
-    
+    number = 20
+    nearestNeighbors = {i : findNearestNeighbors_(i, adjacencyMatrix, number) for i in range(len(adjacencyMatrix))}
+    pizda = 1
     weAreDone = False
     while not weAreDone:
         weAreDone = True
         for i in range(len(sortedNodes)):
             pizda = 1
             
-            pizda = 1
+            neighbors = nearestNeighbors[i].copy()
+            nodesToAvoid = [sortedNodes[i], sortedNodes[i-1], sortedNodes[((i+1)%len(sortedNodes))]]
+            boolMask = np.repeat(True, len(neighbors))
+            for j in range(len(neighbors)):
+                if neighbors[j] in nodesToAvoid:
+                    boolMask[j] = False
+            neighbors = neighbors[boolMask]
+            backups = [sortedNodes.copy() for j in range(len(neighbors))]
+            costs = np.zeros(len(backups))
+            for j in range(len(backups)):
+                partOne = backups[j][0:i+1]
+                partTwo = backups[j][i+1:len(backups[j])]
+                backups[j] = partTwo + partOne
+                nn = neighbors[j]
+                positionOfnn = backups[j].index(nn)
+                partOne = backups[j][0:positionOfnn+1]
+                partOne.reverse()
+                partTwo = backups[j][positionOfnn+1:len(backups[j])] 
+                backups[j] = partTwo + partOne
+                costs[j] = costFunction_(backups[j], adjacencyMatrix)
+            theSmallest = np.argmin(costs)
+            if costs[theSmallest] < costFunction_(sortedNodes, adjacencyMatrix):
+                print("HO")
+                weAreDone = False
+                sortedNodes = backups[theSmallest]
 
-            backup = sortedNodes.copy()
+            backup = sortedNodes.copy()#the next part of the code works super-slowly for some reason
             partOne = backup[0:i+1]
             partTwo = backup[i+1:len(backup)]
             pizda = 1
-            backup = partTwo + partOne#big problems somewhere here
+            backup = partTwo + partOne
             nn = findNearestNeighbor_(backup[-1], [backup[-2], backup[0]], adjacencyMatrix)
             pizda = 1
             positionOfnn = backup.index(nn)
@@ -310,9 +353,14 @@ def symmetricTSPpostProcessing(adjacencyMatrixFile, sortedNodes):
             backup = partTwo + partOne
             pizda = 1
             if costFunction_(backup, adjacencyMatrix) < costFunction_(sortedNodes, adjacencyMatrix):
-                print("HO")
+                print("HOHO")
                 weAreDone = False
                 sortedNodes = backup
+
+
+
+
+
             # nn = findNearestNeighbor_(sortedNodes[i], [sortedNodes[i-1], sortedNodes[(i+1) % len(sortedNodes)]], adjacencyMatrix)#I hope it works. Maybe the problem's here
             # positionOfnn = positionsDict[nn]
             # backup = sortedNodes.copy()
